@@ -5,7 +5,13 @@
 ############
 
 ui <- tagList(
-  
+
+# to suppress the error message on the paracoordinate plot
+tags$style(type="text/css",
+".shiny-output-error { visibility: hidden; }",
+".shiny-output-error:before { visibility: hidden; }"
+),
+
   navbarPage(theme = shinytheme("sandstone"),
              "LA County Voters",
              tabPanel("Census Data",
@@ -97,67 +103,72 @@ ui <- tagList(
                                       
                             #############################################
                             
-                            bootstrapPage(
-                              div(class='mapPanel',
-                            # tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-                            tags$style(type = "text/css", ".mapPanel {position: fixed; top: 41px; left: 0; right: 0; bottom: 0; overflow: hidden; padding: 0}"),
-                            leafletOutput('map', width = '100%', height = '100%'), 
-                            
-                            absolutePanel(top='5%', right ='5%', # Convert this to tabs
-                                          
-                                          # select the data to graph
-                                          radioButtons('map_graph', 'Select Map Type', 
-                                                       c('Voters - By Dropoff' = 'dropoffCenter', 
-                                                         'Voters - By City' = 'voterCityCenter',
-                                                         'Census Map' = 'census'),
-                                                       inline = T),
-                                          
-                                          # add radio buttons for the map selection
-                                          radioButtons('map_type', 'Select Map Background', 
-                                                       c('Simple' = 'positron', 
-                                                         'Road Centric' = 'toner',
-                                                         'Detailed' = 'mapnik'),
-                                                       inline = T),
-                                          
-                                          # implement city selection
-                                          htmlOutput("selectUI"), 
-                                          
-                                          # insert census UI when census map type is selected
-                                          uiOutput('censusUI')
-                                          
-                            ),
-                            
-                            absolutePanel(
-                              top='5%', left='5%', width = '25%', height = '80%',
-                              
-                              conditionalPanel(
-                                condition = "input.map_graph == 'voterCityCenter'",
-                                
-                                absolutePanel(
-                                  conditionalPanel(
-                                    condition = "input.map_graph == 'voterCityCenter'", # add condition for length of cities
-                                    htmlOutput('voter_statistics')
-                                  ) # close inner condition
-                                  
-                                  , style = "width: 100%; 
-                                  height: 100%;
-                                  border-radius: 25px;
-                                  overflow-y: auto; 
-                                  background: #ffffff; 
-                                  opacity: .75;
-                                  display: inline-block;
-                                  border-style: solid;
-                                  border-color: black;
-                                  border-width: 1px;
-                                  padding: 20px;"
-                                ) # close placement of 
-                                ) # close the outer condition
-                                ) # close the outer absolute panel
-                              ) # div container
-                            ) # bootstrap page
-             ), # close the maps tabpanel     
-           ################################################           
-                      
+bootstrapPage(
+
+div(class='mapPanel',
+tags$style(type = "text/css", ".mapPanel {position: fixed; top: 41px; left: 0; right: 0; bottom: 0; overflow: hidden; padding: 0}"),
+leafletOutput('map', width = '100%', height = '100%'),
+
+absolutePanel(top='5%', right ='5%', # to fill in later
+
+# select the data to graph
+radioButtons('map_graph', 'Select Map Type',
+c('Voters - By Dropoff' = 'dropoffCenter',
+'Voters - By City' = 'voterCityCenter',
+'Census Map' = 'census'),
+inline = T),
+
+# add radio buttons for the map selection
+radioButtons('map_type', 'Select Map Background',
+c('Simple' = 'positron',
+'Road Centric' = 'toner',
+'Detailed' = 'mapnik'),
+inline = T),
+
+# implement city selection
+htmlOutput("selectUI"),
+
+# insert census UI when census map type is selected
+uiOutput('censusUI')
+
+),
+
+absolutePanel(
+top='7%', left='5%', width = '400px', height = '1200px',
+
+conditionalPanel(
+condition = "input.map_graph == 'voterCityCenter'",
+
+
+absolutePanel(
+conditionalPanel(
+condition = 'map_marker_click != NULL', # figure this out could just place in container
+uiOutput('conditionalUI')
+), # close condition
+conditionalPanel(
+condition = "input.map_graph == 'voterCityCenter'", # add condition for length of cities
+bootstrapPage(htmlOutput('voter_statistics'))
+) # close inner condition
+
+, style = "width: 100%;
+height: 100%;
+overflow-y: auto;
+background: #ffffff;
+opacity: .75;
+display: inline-block;
+border-style: solid;
+border-color: black;
+border-width: 1px;
+padding: 20px;"
+# border-radius: 25px;
+) # close placement of
+) # close the outer condition
+) # close the outer absolute panel
+) # div container
+) # close the bootstrap page
+             ), # close the maps tabpanel
+           ################################################
+
 
              tabPanel("Voter Information",
                       mainPanel(
@@ -166,7 +177,7 @@ ui <- tagList(
                                    tags$p("To check your LA County voter status,"),
                                    tags$a(href="https://www.lacounty.gov/government/elections-voting/check-voter-registration-online", "Click Here!")
                                  )
-                        ), 
+                        ),
                         br(),br(),
                         tags$div(class="header", checked=NA,
                                  list(
